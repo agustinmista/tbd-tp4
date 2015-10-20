@@ -1,6 +1,6 @@
 module Main where
 
-    import Data.List (subsequences, (\\))
+    import Data.List (subsequences, (\\), intersperse)
 
     type FuncDep a = ([a], [a])
 
@@ -52,10 +52,26 @@ module Main where
                          tup_ac  = map (\la -> (la, closure deps la)) attr_n
                          tup_kc  = filter (\(la, cl) -> cl =*= a) tup_ac
                          keys_n  = map fst tup_kc
-                      in if null keysn
+                      in if null keys_n
                          then keys' a deps (n+1)
                          else keys_n
 
+
+
+    ----------------------------------------------------------------------------
+    -- Mostramos un esquema, sus dependencias y las claves encontradas
+    showKeys :: [Char] -> [FuncDep Char] -> IO ()
+    showKeys r f = do putStrLn $ "Esquema:            " ++ intersperse ',' r
+                      putStrLn $ "Dependencias:       " ++ pretifyDeps f
+                      putStrLn $ "Claves candidatas:  " ++ pretifyKeys (keys r f) ++ "\n"
+
+    pretifyDeps = foldl (++) "" . map (\(x, y) -> "(" ++ x ++ "->" ++ y ++ ") ")
+    pretifyKeys = foldl (++) "" . intersperse ","
+
+    main :: IO ()
+    main = do showKeys r1 f1
+              showKeys r1 f2
+              showKeys r3 f3
 
 
     -- datasets
