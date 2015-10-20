@@ -1,5 +1,7 @@
 module Main where
 
+    import Data.List (subsequences, (\\))
+
     type FuncDep a = ([a], [a])
 
     -- Checkea si x está en ys
@@ -26,11 +28,35 @@ module Main where
     step a deps = remDup (foldr (\dep a' -> (a' <-- dep)) a  deps)
 
     -- Dado una alpha y una lista de dependencias devuelve alpha^+
-    cierre :: Eq a => [a] -> [FuncDep a] -> [a]
-    cierre a deps = let a' = step a deps in
+    closure :: Eq a => [FuncDep a] -> [a] -> [a]
+    closure deps a = let a' = step a deps in
                         if a == a'
                         then a
-                        else cierre a' deps
+                        else closure deps a'
+
+    -- Checkea si dos listas tienen los mismos elementos (igualdad de conjuntos)
+    (=*=) :: Eq a => [a] -> [a] -> Bool
+    (=*=) a b = (null (a \\ b)) && (null (b \\ a))
+
+    --Devuelve el conjunto de todas las claves candidatas
+    keys :: Eq a => [a] -> [FuncDep a] -> [[a]]
+    keys a deps = keys' a deps 1
+
+    -- Busca las claves candidatas de una lista de dependencias funcionales y una
+    -- lista de atributos. Si con subsecuenciass de n elementos de los atributos
+    -- encontramos que algunas de ellas son clave entonces el algoritmo se detiene,
+    -- y podemos ver que además son claves candidatas, ya que ningun subconjunto
+    -- de ellas es clave (de lo contrario el algoritmo habría parado en ese paso).
+    keys' :: Eq a => [a] -> [FuncDep a] -> Int -> [[a]]
+    keys' a deps n = let attr_n  = filter (\x -> length x == n) (subsequences a)
+                         tup_ac  = map (\la -> (la, closure deps la)) attr_n
+                         tup_kc  = filter (\(la, cl) -> cl =*= a) tup_ac
+                         keys_n  = map fst tup_kc
+                      in if null keysn
+                         then keys' a deps (n+1)
+                         else keys_n
+
+
 
     -- datasets
     r1 = "ABCDEFGHIJ"
